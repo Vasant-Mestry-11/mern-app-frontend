@@ -1,4 +1,5 @@
-import React, { useReducer } from "react";
+import React, { useEffect, useReducer } from "react";
+import { validate } from "../../../utils/validator";
 import "./Input.css";
 
 const inputReducer = (state, action) => {
@@ -7,23 +8,55 @@ const inputReducer = (state, action) => {
       return {
         ...state,
         value: action.val,
-        isValid: true,
+        isValid: validate(action.val, action.validators),
       };
+    case "TOUCH": {
+      return {
+        ...state,
+        isTouched: true,
+      };
+    }
     default:
       return "state";
   }
 };
 
-const Input = ({ label, id, element, type, placeholder, rows, errorText }) => {
+const Input = ({
+  label,
+  id,
+  element,
+  type,
+  placeholder,
+  rows,
+  errorText,
+  validators,
+  onInput,
+  initialValue,
+  initialValid,
+}) => {
   const [inputState, dispatch] = useReducer(inputReducer, {
-    value: "",
-    isValid: false,
+    value: initialValue || "",
+    isTouched: false,
+    isValid: initialValid || false,
   });
+
+  const { value, isValid } = inputState;
+
+  useEffect(() => {
+    onInput(id, value, isValid);
+  }, [id, value, isValid, onInput]);
 
   const changeHandler = (event) => {
     dispatch({
       type: "CHANGE",
       val: event.target.value,
+      validators,
+    });
+  };
+
+  const touchHandler = () => {
+    dispatch({
+      type: "TOUCH",
     });
   };
 
@@ -34,6 +67,7 @@ const Input = ({ label, id, element, type, placeholder, rows, errorText }) => {
         type={type}
         placeholder={placeholder}
         onChange={changeHandler}
+        onBlur={touchHandler}
         value={inputState.value}
       />
     ) : (
@@ -41,18 +75,19 @@ const Input = ({ label, id, element, type, placeholder, rows, errorText }) => {
         id={id}
         rows={rows || 3}
         onChange={changeHandler}
+        onBlur={touchHandler}
         value={inputState.value}
       />
     );
   return (
     <div
       className={`form-control ${
-        !inputState.isValid && "form-control--invalid"
+        !inputState.isValid && inputState.isTouched && "form-control--invalid"
       }`}
     >
       <label htmlFor={id}>{label}</label>
       {elementType}
-      {!inputState.isValid && <p>{errorText}</p>}
+      {!inputState.isValid && inputState.isTouched && <p>{errorText}</p>}
     </div>
   );
 };
