@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import NewPlace from "./places/pages/NewPlace/NewPlace";
 import UpdatePlace from "./places/pages/UpdatePlace/UpdatePlace";
@@ -9,8 +10,19 @@ import Users from "./user/pages/Users";
 
 const App = () => {
   // Check here if any UI alignment issue
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const login = useCallback(() => {
+    setIsLoggedIn(true);
+  }, []);
+
+  const logout = useCallback(() => {
+    setIsLoggedIn(false);
+  }, []);
+
   return (
-    <AuthContext.Provider>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
       <>
         <MainNavigation />
         <main>
